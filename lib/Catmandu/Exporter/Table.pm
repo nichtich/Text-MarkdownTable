@@ -83,12 +83,18 @@ Catmandu::Exporter::Table - export as ASCII/Markdown table
 
 =head1 SYNOPSIS
 
-    cat yourdata | catmandu convert to Table
+  echo '{"one":"my","two":"table"} {"one":"is","two":"nice"}]' | \ 
+  catmandu convert JSON --multiline 1 to Table
+  | one | two   |
+  |-----|-------|
+  | my  | table |
+  | is  | nice  |
 
 =head1 DESCRIPTION
 
 This L<Catmandu::Exporter> exports data in tabular form, formatted in
-MultiMarkdown syntax.
+MultiMarkdown syntax. The resulting format can be used for instance to display
+CSV data or to include data tables in Markdown files.
 
 =head1 CONFIGURATION
 
