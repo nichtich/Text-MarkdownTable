@@ -1,5 +1,13 @@
 package Catmandu::Exporter::Table;
 
+=head1 NAME
+
+Catmandu::Exporter::Table - ASCII/Markdown table exporter
+
+=cut
+
+our $VERSION = v0.1.0;
+
 use Catmandu::Sane;
 use Moo;
 use List::Util qw(sum);
@@ -9,27 +17,35 @@ with 'Catmandu::Exporter';
 has fields => (
     is     => 'rw',
     coerce => sub {
-        my $fields = $_[0];
-        if (ref $fields eq 'ARRAY') { return $fields }
-        # TODO: use as columns
-        if (ref $fields eq 'HASH')  { return [sort keys %$fields] }
-        return [split ',', $fields];
+        _coerce_list($_[0]);
+        # TODO: trigger
+#        if (ref $_[0] and ref $_[0] eq 'HASH') {
+#        }
+        # TODO: use as columns if $_[0] is ref
     },
 );
 
 has columns => (
-    is      => 'rw',
-    lazy    => 1,
-    builder => sub { $_[0]->fields } # TODO: coerce
+    is      => 'lazy',
+    coerce  => \&_coerce_list,
+    builder => sub { $_[0]->fields }
 );
 
 has widths => (
-    is => 'ro',
-    lazy => 1,
+    is      => 'lazy',
+    coerce  => \&_coerce_list,
     builder => sub {
         [map { length $_ } @{$_[0]->columns}]
-    }
+    },
 );
+
+sub _coerce_list {
+    if (ref $_[0]) {
+        return $_[0] if ref $_[0] eq 'ARRAY';
+        return [sort keys %{$_[0]}] if ref $_[0] eq 'HASH';
+    }    
+    return [split /[,|]/, $_[0]];
+}
 
 sub add {
     my ($self, $data) = @_;
@@ -77,10 +93,6 @@ sub print_row {
     print $fh "|\n";
 }
 
-=head1 NAME
-
-Catmandu::Exporter::Table - export as ASCII/Markdown table
-
 =head1 SYNOPSIS
 
   echo '{"one":"my","two":"table"} {"one":"is","two":"nice"}]' | \ 
@@ -104,7 +116,22 @@ CSV data or to include data tables in Markdown files.
 
 Array, hash reference, or comma-separated list of fields/columns.
 
+=item columns
+
+Column names. By default field names are used.
+
+=item widths
+
+Column widths. Automatically set.
+
 =back
+
+=head1 CONTRIBUTING
+
+This module is managed it a git repository hosted at
+L<https://github.com/nichtich/Catmandu-Exporter-Table>. Bug reports, feature
+requests, and pull requests are welcome. The distribution is packages with
+L<Dist::Milla>.
 
 =head1 SEE ALSO
 

@@ -1,0 +1,12 @@
+.DS_Store
+*.swp
+.build
+_build
+blib
+Build
+Makefile.PL
+MANIFEST*
+META.*
+!META.json
+MYMETA.*
+Catmandu-*
