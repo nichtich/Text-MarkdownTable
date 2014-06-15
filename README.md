@@ -23,6 +23,14 @@ CSV data or to include data tables in Markdown files.
 
     Array, hash reference, or comma-separated list of fields/columns.
 
+- columns
+
+    Column names. By default field names are used.
+
+- widths
+
+    Column widths. Automatically set.
+
 # CONTRIBUTING
 
 This module is managed it a git repository hosted at

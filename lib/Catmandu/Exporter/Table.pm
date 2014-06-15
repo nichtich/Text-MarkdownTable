@@ -16,13 +16,7 @@ with 'Catmandu::Exporter';
 
 has fields => (
     is     => 'rw',
-    coerce => sub {
-        _coerce_list($_[0]);
-        # TODO: trigger
-#        if (ref $_[0] and ref $_[0] eq 'HASH') {
-#        }
-        # TODO: use as columns if $_[0] is ref
-    },
+    trigger => 1,
 );
 
 has columns => (
@@ -47,9 +41,20 @@ sub _coerce_list {
     return [split /[,|]/, $_[0]];
 }
 
+sub _trigger_fields {
+    my ($self, $fields) = @_;
+    $self->{fields} = _coerce_list($fields);
+    if (ref $fields and ref $fields eq 'HASH') {
+        $self->{columns} = [ map { $fields->{$_} } @{$self->{fields}} ];
+    }
+}
+
 sub add {
     my ($self, $data) = @_;
-    my $fields = $self->fields || $self->fields($data);
+    unless ($self->fields) {
+        $self->{fields} = [ sort keys %$data ]
+    }
+    my $fields = $self->fields;
     my $row = [map {
         my $val = $data->{$_} // "";
         $val =~ s/\n/ /g;
