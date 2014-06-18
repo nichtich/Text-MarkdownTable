@@ -7,13 +7,13 @@ BEGIN {
 }
 require_ok 'Catmandu::Exporter::Table';
 
-my $got;
+my ($got, $expect);
 
 sub export_table(@) {
     my (%config) = @_;
-    ${$config{file}} = "";
+    $got = "";
     my $data = delete $config{data};
-    my $exporter = Catmandu::Exporter::Table->new(%config);
+    my $exporter = Catmandu::Exporter::Table->new(%config, file => \$got);
     isa_ok $exporter, 'Catmandu::Exporter::Table';
     $exporter->add($_) for @$data;
     $exporter->commit;
@@ -21,33 +21,41 @@ sub export_table(@) {
 }
 
 export_table
-    file => \$got,
-    data => [{'a' => 'moose', b => '1'}, {'a' => 'pony', b => '2'}, {'a' => 'shrimp', b => '3'}];
+    data => [{'a' => 'moose', b => '1'}, 
+             {'a' => "p\nony", b => '2'}, 
+             {'a' => 'shr|mp', b => '3'}];
 
-my $table = <<TABLE;
+$expect = <<TABLE;
 | a      | b |
 |--------|---|
 | moose  | 1 |
-| pony   | 2 |
-| shrimp | 3 |
+| p ony  | 2 |
+| shr mp | 3 |
 TABLE
 
-is($got, $table, "MultiMarkdown format ok");
+is($got, $expect, "MultiMarkdown format ok");
  
-export_table
-    file => \$got,
-    fields => { a => 'Longname', x => 'X' },
-    data => [
-        { a => 'Hello', b => 'World' }
-    ];
 
-$table = <<TABLE;
+export_table
+    fields => { a => 'Longname', x => 'X' },
+    data => [ { a => 'Hello', b => 'World' } ];
+$expect = <<TABLE;
 | Longname | X |
 |----------|---|
 | Hello    |   |
 TABLE
-is $got, $table, 'custom column names as HASH';
+is $got, $expect, 'custom column names as HASH';
 
-note $got;
+
+export_table
+    data => [ { a => 'Hi', b => 'World', c => 'long value' } ],
+    widths => '5,3,6';
+$expect = <<TABLE;
+| a     | b   | c      |
+|-------|-----|--------|
+| Hi    | Wor | lon... |
+TABLE
+
+is $got, $expect, 'custom column width / truncation';
 
 done_testing;

@@ -29,8 +29,14 @@ has widths => (
     is      => 'lazy',
     coerce  => \&_coerce_list,
     builder => sub {
+        $_[0]->fixed_width(0);
         return [map { length $_ } @{$_[0]->columns}]
     },
+);
+
+has fixed_width => (
+    is      => 'rw',
+    default => sub { 1 }
 );
 
 sub _coerce_list {
@@ -55,17 +61,29 @@ sub add {
         $self->{fields} = [ sort keys %$data ]
     }
     my $fields = $self->fields;
-    my $row = [map {
-        my $val = $data->{$_} // "";
-        $val =~ s/\n/ /g;
-        $val =~ s/\|/\\|/g;
-        $val;
-    } @$fields];
-
     my $widths = $self->widths;
+    my $row = [ ];
+
     foreach my $col (0..(@$fields-1)) {
-        my $w = length $row->[$col];
-        $widths->[$col] = $w if $w > $widths->[$col];
+        my $field = $fields->[$col];
+        my $width = $widths->[$col];
+
+        my $value = $data->{$field} // "";
+        $value =~ s/[\n|]/ /g;
+
+        my $w = length $value;
+        if ($self->fixed_width) {
+            if ($w > $width) {
+                if ($width > 5) {
+                    $value = substr($value, 0, $width-3) . '...';
+                } else {
+                    $value = substr($value, 0, $width);
+                }
+            }
+        } else {
+            $widths->[$col] = $w if $w > $width;
+        }
+        push @$row, $value;
     }
 
     push @{$self->{_rows}}, $row;
@@ -81,14 +99,14 @@ sub commit {
     my $columns = $self->columns;
 #    my $line = '-' x (sum(@$widths) + 2*@$widths + 2) . "\n";
  
-    $self->print_row($self->columns);
+    $self->print_multimarkdown_row($self->columns);
     map { print $fh "|".('-' x ($_+2))} @$widths;
     print $fh "|\n";
 
-    $self->print_row($_) for @{$self->{_rows}};
+    $self->print_multimarkdown_row($_) for @{$self->{_rows}};
 }
 
-sub print_row {
+sub print_multimarkdown_row {
     my ($self, $row) = @_;
     my $fh     = $self->fh;
     my $widths = $self->widths;
@@ -118,7 +136,9 @@ sub print_row {
 
 This L<Catmandu::Exporter> exports data in tabular form, formatted in
 MultiMarkdown syntax. The resulting format can be used for instance to display
-CSV data or to include data tables in Markdown files.
+CSV data or to include data tables in Markdown files. Newlines and vertical
+bars in table cells are replaced by a space character and cell values can be
+truncated.
 
 =head1 CONFIGURATION
 
@@ -134,7 +154,8 @@ Column names. By default field names are used.
 
 =item widths
 
-Column widths. Automatically set.
+Column widths. By default column widths are calculated automatically to the
+width of the widest value. With cusom width, large values may be truncated.
 
 =back
 

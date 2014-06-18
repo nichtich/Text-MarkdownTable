@@ -1,4 +1,5 @@
 {{$NEXT}}
+    - support fixed column widths and truncation
 
 v0.1.0  2014-06-15 10:39:39 CEST
     - inital release
