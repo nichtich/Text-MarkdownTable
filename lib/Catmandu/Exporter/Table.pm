@@ -6,7 +6,7 @@ Catmandu::Exporter::Table - ASCII/Markdown table exporter
 
 =cut
 
-our $VERSION = v0.1.0;
+our $VERSION = v0.1.1;
 
 use Catmandu::Sane;
 use Moo;
@@ -29,7 +29,7 @@ has widths => (
     is      => 'lazy',
     coerce  => \&_coerce_list,
     builder => sub {
-        [map { length $_ } @{$_[0]->columns}]
+        return [map { length $_ } @{$_[0]->columns}]
     },
 );
 
@@ -107,6 +107,13 @@ sub print_row {
   | my  | table |
   | is  | nice  |
 
+  catmandu convert CSV to Table --fields id,name --columns ID,Name < sample.csv
+  | ID | Name |
+  |----|------|
+  | 23 | foo  |
+  | 42 | bar  |
+  | 99 | doz  |
+
 =head1 DESCRIPTION
 
 This L<Catmandu::Exporter> exports data in tabular form, formatted in
@@ -135,8 +142,17 @@ Column widths. Automatically set.
 
 This module is managed it a git repository hosted at
 L<https://github.com/nichtich/Catmandu-Exporter-Table>. Bug reports, feature
-requests, and pull requests are welcome. The distribution is packages with
+requests, and pull requests are welcome. The distribution is packaged with
 L<Dist::Milla>.
+
+=begin HTML
+
+<p>
+<img src="https://travis-ci.org/nichtich/Catmandu-Exporter-Table.svg?branch=master" alt="build status" />
+<img src="https://coveralls.io/repos/nichtich/Catmandu-Exporter-Table/badge.png?branch=master" alt="coverage status" />
+</p>
+
+=end HTML
 
 =head1 SEE ALSO
 
