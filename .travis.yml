@@ -6,8 +6,6 @@ perl:
       - 5.12
       - 5.10
 
-before_install:
+after_success:
     - cpanm -n Devel::Cover::Report::Coveralls
-
-script:
-      perl Makefile.PL && make test && cover -test -report coveralls    
+    - cover -test -report coveralls
