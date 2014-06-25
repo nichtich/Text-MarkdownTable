@@ -1,4 +1,6 @@
 {{$NEXT}}
+
+0.1.2  2014-06-25 11:23:48 CEST
     - better align with Catmandu::Exporter::CSV
 
 v0.1.1  2014-06-18 12:40:42 CEST
