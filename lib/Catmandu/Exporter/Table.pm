@@ -1,16 +1,10 @@
 package Catmandu::Exporter::Table;
 
-=head1 NAME
+our $VERSION = '0.1.2';
 
-Catmandu::Exporter::Table - ASCII/Markdown table exporter
-
-=cut
-
-our $VERSION = v0.1.1;
-
+use namespace::clean;
 use Catmandu::Sane;
 use Moo;
-use List::Util qw(sum);
 
 with 'Catmandu::Exporter';
 
@@ -19,7 +13,7 @@ has fields => (
     trigger => 1,
 );
 
-has columns => (
+has header => (
     is      => 'lazy',
     coerce  => \&_coerce_list,
     builder => sub { $_[0]->fields }
@@ -30,28 +24,27 @@ has widths => (
     coerce  => \&_coerce_list,
     builder => sub {
         $_[0]->fixed_width(0);
-        return [map { length $_ } @{$_[0]->columns}]
+        return [map { length $_ } @{$_[0]->header}]
     },
 );
 
-has fixed_width => (
-    is      => 'rw',
-    default => sub { 1 }
-);
+has fixed_width => (is => 'rw', default => sub { 1 });
+has condense    => (is => 'ro');
 
+# TODO: duplicated in Catmandu::Exporter::CSV fields-coerce
 sub _coerce_list {
     if (ref $_[0]) {
         return $_[0] if ref $_[0] eq 'ARRAY';
         return [sort keys %{$_[0]}] if ref $_[0] eq 'HASH';
     }    
-    return [split /[,|]/, $_[0]];
+    return [split ',', $_[0]];
 }
 
 sub _trigger_fields {
     my ($self, $fields) = @_;
     $self->{fields} = _coerce_list($fields);
     if (ref $fields and ref $fields eq 'HASH') {
-        $self->{columns} = [ map { $fields->{$_} } @{$self->{fields}} ];
+        $self->{header} = [ map { $fields->{$_} } @{$self->{fields}} ];
     }
 }
 
@@ -96,10 +89,10 @@ sub commit {
 
     my $fh      = $self->fh;
     my $widths  = $self->widths;
-    my $columns = $self->columns;
+    my $header = $self->header;
 #    my $line = '-' x (sum(@$widths) + 2*@$widths + 2) . "\n";
  
-    $self->print_multimarkdown_row($self->columns);
+    $self->print_multimarkdown_row($self->header);
     map { print $fh "|".('-' x ($_+2))} @$widths;
     print $fh "|\n";
 
@@ -116,6 +109,10 @@ sub print_multimarkdown_row {
     print $fh "|\n";
 }
 
+=head1 NAME
+
+Catmandu::Exporter::Table - ASCII/Markdown table exporter
+
 =head1 SYNOPSIS
 
   echo '{"one":"my","two":"table"} {"one":"is","two":"nice"}]' | \ 
@@ -125,7 +122,7 @@ sub print_multimarkdown_row {
   | my  | table |
   | is  | nice  |
 
-  catmandu convert CSV to Table --fields id,name --columns ID,Name < sample.csv
+  catmandu convert CSV to Table --fields id,name --header ID,Name < sample.csv
   | ID | Name |
   |----|------|
   | 23 | foo  |
@@ -148,36 +145,25 @@ truncated.
 
 Array, hash reference, or comma-separated list of fields/columns.
 
-=item columns
+=item header
 
 Column names. By default field names are used.
 
 =item widths
 
 Column widths. By default column widths are calculated automatically to the
-width of the widest value. With cusom width, large values may be truncated.
+width of the widest value. With custom width, large values may be truncated.
 
 =back
 
-=head1 CONTRIBUTING
+=head1 METHODS
 
-This module is managed it a git repository hosted at
-L<https://github.com/nichtich/Catmandu-Exporter-Table>. Bug reports, feature
-requests, and pull requests are welcome. The distribution is packaged with
-L<Dist::Milla>.
-
-=begin HTML
-
-<p>
-<img src="https://travis-ci.org/nichtich/Catmandu-Exporter-Table.svg?branch=master" alt="build status" />
-<img src="https://coveralls.io/repos/nichtich/Catmandu-Exporter-Table/badge.png?branch=master" alt="coverage status" />
-</p>
-
-=end HTML
+See L<Catmandu::Exporter>, L<Catmandu::Addable>, L<Catmandu::Fixable>,
+L<Catmandu::Counter>, and L<Catmandu::Logger> for a full list of methods.
 
 =head1 SEE ALSO
 
-Parts of this module have been copied from L<Catmandu::Exporter::CSV>.
+L<Catmandu::Exporter::CSV>
 
 =cut
 

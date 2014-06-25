@@ -1,4 +1,5 @@
 {{$NEXT}}
+    - better align with Catmandu::Exporter::CSV
 
 v0.1.1  2014-06-18 12:40:42 CEST
     - support fixed column widths and truncation
