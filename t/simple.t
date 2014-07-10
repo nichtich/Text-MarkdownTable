@@ -2,28 +2,24 @@ use strict;
 use warnings;
 use Test::More;
 
-BEGIN {
-    use_ok 'Catmandu::Exporter::Table';
-}
-require_ok 'Catmandu::Exporter::Table';
+BEGIN { use_ok 'Text::MarkdownTable'; }
+require_ok 'Text::MarkdownTable';
 
 my ($got, $expect);
 
-sub export_table(@) {
+sub table(@) {
     my (%config) = @_;
     $got = "";
     my $data = delete $config{data};
-    my $exporter = Catmandu::Exporter::Table->new(%config, file => \$got);
-    isa_ok $exporter, 'Catmandu::Exporter::Table';
-    $exporter->add($_) for @$data;
-    $exporter->commit;
-    is($exporter->count, scalar @$data, "Count ok");
+    my $table = Text::MarkdownTable->new(%config, file => \$got);
+    isa_ok $table, 'Text::MarkdownTable';
+    $table->add($_) for @$data;
+    $table->done;
 }
 
-export_table
-    data => [{'a' => 'moose', b => '1'}, 
-             {'a' => "p\nony", b => '2'}, 
-             {'a' => 'shr|mp', b => '3'}];
+table data => [{'a' => 'moose', b => '1'}, 
+               {'a' => "p\nony", b => '2'}, 
+               {'a' => 'shr|mp', b => '3'}];
 
 $expect = <<TABLE;
 | a      | b |
@@ -33,12 +29,11 @@ $expect = <<TABLE;
 | shr mp | 3 |
 TABLE
 
-is($got, $expect, "MultiMarkdown format ok");
+is $got, $expect, "MultiMarkdown format ok";
  
 
-export_table
-    fields => { a => 'Longname', x => 'X' },
-    data => [ { a => 'Hello', b => 'World' } ];
+table data => [ { a => 'Hello', b => 'World' } ],
+      fields => { a => 'Longname', x => 'X' };
 $expect = <<TABLE;
 | Longname | X |
 |----------|---|
@@ -47,9 +42,8 @@ TABLE
 is $got, $expect, 'custom column names as HASH';
 
 
-export_table
-    data => [ { a => 'Hi', b => 'World', c => 'long value' } ],
-    widths => '5,3,6';
+table data => [ { a => 'Hi', b => 'World', c => 'long value' } ],
+      widths => '5,3,6';
 $expect = <<TABLE;
 | a     | b   | c      |
 |-------|-----|--------|

@@ -1,26 +1,22 @@
 # NAME
 
-Catmandu::Exporter::Table - ASCII/Markdown table exporter
+Text::MarkdownTable - Write Markdown syntax tables from data
 
 # SYNOPSIS
 
-    echo '{"one":"my","two":"table"} {"one":"is","two":"nice"}]' | \ 
-    catmandu convert JSON --multiline 1 to Table
+    my $table = Text::MarkdownTable->new;
+    $table->add_row({one=>"my",two=>"table"});
+    $table->add_row({one=>"is",two=>"nice"});
+    $table->done;
+
     | one | two   |
     |-----|-------|
     | my  | table |
     | is  | nice  |
 
-    catmandu convert CSV to Table --fields id,name --header ID,Name < sample.csv
-    | ID | Name |
-    |----|------|
-    | 23 | foo  |
-    | 42 | bar  |
-    | 99 | doz  |
-
 # DESCRIPTION
 
-This [Catmandu::Exporter](https://metacpan.org/pod/Catmandu::Exporter) exports data in tabular form, formatted in
+This module can be used to write data in tabular form, formatted in
 MultiMarkdown syntax. The resulting format can be used for instance to display
 CSV data or to include data tables in Markdown files. Newlines and vertical
 bars in table cells are replaced by a space character and cell values can be
@@ -32,7 +28,7 @@ truncated.
 
     Array, hash reference, or comma-separated list of fields/columns.
 
-- header
+- columns
 
     Column names. By default field names are used.
 
@@ -43,9 +39,17 @@ truncated.
 
 # METHODS
 
-See [Catmandu::Exporter](https://metacpan.org/pod/Catmandu::Exporter), [Catmandu::Addable](https://metacpan.org/pod/Catmandu::Addable), [Catmandu::Fixable](https://metacpan.org/pod/Catmandu::Fixable),
-[Catmandu::Counter](https://metacpan.org/pod/Catmandu::Counter), and [Catmandu::Logger](https://metacpan.org/pod/Catmandu::Logger) for a full list of methods.
+- add
+
+    Add a row as hash reference. Depending on the configuration rows are directly
+    written or buffered.
+
+- done
+
+    Finish and write the table unless it has already been written.
 
 # SEE ALSO
 
-[Catmandu::Exporter::CSV](https://metacpan.org/pod/Catmandu::Exporter::CSV)
+This module is a fork of [Catmandu::Exporter::Table](https://metacpan.org/pod/Catmandu::Exporter::Table). See
+[Text::TabularDisplay](https://metacpan.org/pod/Text::TabularDisplay), [Text::SimpleTable](https://metacpan.org/pod/Text::SimpleTable), and [Text::Table](https://metacpan.org/pod/Text::Table),
+[Text::ANSITable](https://metacpan.org/pod/Text::ANSITable), and [Text::ASCIITable](https://metacpan.org/pod/Text::ASCIITable) for similar modules.

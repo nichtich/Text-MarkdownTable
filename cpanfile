@@ -1,2 +1,2 @@
 requires perl => '5.10.0';
-requires Catmandu => '0.9';
+requires Moo => '1.0';
