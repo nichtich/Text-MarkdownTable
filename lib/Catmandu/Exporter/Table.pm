@@ -163,7 +163,8 @@ L<Catmandu::Counter>, and L<Catmandu::Logger> for a full list of methods.
 
 =head1 SEE ALSO
 
-L<Catmandu::Exporter::CSV>
+L<Catmandu::Exporter::CSV>, L<Text::TabularDisplay>, L<Text::SimpleTable>, and
+L<Text::Table>.
 
 =cut
 
