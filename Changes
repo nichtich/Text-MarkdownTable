@@ -1,3 +1,5 @@
 {{$NEXT}}
-- inital release, based on Catmandu::Exporter::Table 0.1.2
+    - implemented condense and unbuffered writing 
 
+0.2.0   2014-07-10
+    - inital release, based on Catmandu::Exporter::Table 0.1.2

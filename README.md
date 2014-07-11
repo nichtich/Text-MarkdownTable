@@ -5,13 +5,13 @@ Text::MarkdownTable - Write Markdown syntax tables from data
 # SYNOPSIS
 
     my $table = Text::MarkdownTable->new;
-    $table->add_row({one=>"my",two=>"table"});
-    $table->add_row({one=>"is",two=>"nice"});
+    $table->add({one=>"a",two=>"table"});
+    $table->add({one=>"is",two=>"nice"});
     $table->done;
 
     | one | two   |
     |-----|-------|
-    | my  | table |
+    | a   | table |
     | is  | nice  |
 
 # DESCRIPTION
@@ -24,6 +24,10 @@ truncated.
 
 # CONFIGURATION
 
+- file
+
+    Filename, GLOB, scalar reference or [IO::Handle](https://metacpan.org/pod/IO::Handle) to write to (default STDOUT).
+
 - fields
 
     Array, hash reference, or comma-separated list of fields/columns.
@@ -35,7 +39,17 @@ truncated.
 - widths
 
     Column widths. By default column widths are calculated automatically to the
-    width of the widest value. With custom width, large values may be truncated.
+    width of the widest value. With given widths, the table is directly be written
+    without buffering and large table cell values are truncated.
+
+- condense
+
+    Write table unbuffered in condense format:
+
+        one|two
+        ---|---
+        a|table
+        is|nice
 
 # METHODS
 
@@ -50,6 +64,18 @@ truncated.
 
 # SEE ALSO
 
-This module is a fork of [Catmandu::Exporter::Table](https://metacpan.org/pod/Catmandu::Exporter::Table). See
-[Text::TabularDisplay](https://metacpan.org/pod/Text::TabularDisplay), [Text::SimpleTable](https://metacpan.org/pod/Text::SimpleTable), and [Text::Table](https://metacpan.org/pod/Text::Table),
-[Text::ANSITable](https://metacpan.org/pod/Text::ANSITable), and [Text::ASCIITable](https://metacpan.org/pod/Text::ASCIITable) for similar modules.
+See [Catmandu::Exporter::Table](https://metacpan.org/pod/Catmandu::Exporter::Table) for an application of this module that can be
+used to easily convert data to Markdown tables.
+
+Similar table-generating modules include
+
+- [Text::Table::Tiny](https://metacpan.org/pod/Text::Table::Tiny)
+- [Text::TabularDisplay](https://metacpan.org/pod/Text::TabularDisplay)
+- [Text::SimpleTable](https://metacpan.org/pod/Text::SimpleTable)
+- [Text::Table](https://metacpan.org/pod/Text::Table)
+- [Text::ANSITable](https://metacpan.org/pod/Text::ANSITable)
+- [Text::ASCIITable](https://metacpan.org/pod/Text::ASCIITable)
+- [Text::UnicodeBox::Table](https://metacpan.org/pod/Text::UnicodeBox::Table)
+- [Table::Simple](https://metacpan.org/pod/Table::Simple)
+- [Text::SimpleTable](https://metacpan.org/pod/Text::SimpleTable)
+- [Text::SimpleTable::AutoWidth](https://metacpan.org/pod/Text::SimpleTable::AutoWidth)

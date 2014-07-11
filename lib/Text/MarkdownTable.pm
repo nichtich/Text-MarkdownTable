@@ -1,8 +1,9 @@
 package Text::MarkdownTable;
 use strict;
 use warnings;
+use 5.010;
 
-our $VERSION = '0.2.0';
+our $VERSION = '0.2.1';
 
 use Moo;
 
@@ -65,7 +66,10 @@ has widths => (
     },
 );
 
+has condense => (is => 'rw');
+
 has _fixed_width => (is => 'rw', default => sub { 1 });
+has _streaming => (is => 'rw');
 
 # TODO: duplicated in Catmandu::Exporter::CSV fields-coerce
 sub _coerce_list {
@@ -93,6 +97,17 @@ sub add {
     my $widths = $self->widths; # may set 
     my $row = [ ];
 
+    if (!$self->_streaming) {
+        if ($self->condense) {
+            $self->_streaming(1);
+            say {$self->fh} join '|', @{$self->columns};
+            say {$self->fh} join '|', map { '-' x length $_ } @{$self->columns};
+        } elsif($self->_fixed_width) {
+            $self->_streaming(1);
+            $self->_print_header;
+        }
+    }
+
     foreach my $col (0..(@$fields-1)) {
         my $field = $fields->[$col];
         my $width = $widths->[$col];
@@ -115,34 +130,49 @@ sub add {
         push @$row, $value;
     }
 
-    push @{$self->{_rows}}, $row;
-
+    $self->_add_row($row);
     $self;
 }
 
-# TODO: support ugly Markdown table (no alignment)
+sub _add_row {
+    my ($self, $row) = @_;
+
+    if ($self->_streaming) {
+        if ($self->condense) {
+            say {$self->fh} join '|', @$row;
+        } else {
+            $self->_print_row($row);
+        }
+    } else {
+        push @{$self->{_rows}}, $row;
+    }
+}
 
 sub done {
     my ($self) = @_;
 
-    my $fh      = $self->fh;
-    my $widths  = $self->widths;
- 
-    $self->_print_multimarkdown_row($self->columns);
-    map { print $fh "|".('-' x ($_+2))} @$widths;
-    print $fh "|\n";
-
-    $self->_print_multimarkdown_row($_) for @{$self->{_rows}};
+    if ($self->{_rows}) {
+        $self->_print_header;
+        $self->_print_row($_) for @{$self->{_rows}};
+    }
 }
 
-sub _print_multimarkdown_row {
+sub _print_header {
+    my ($self) = @_;
+    my $fh     = $self->fh;
+    $self->_print_row($self->columns);
+    map { print $fh "|".('-' x ($_+2))} @{$self->widths};
+    say $fh "|";
+}
+
+sub _print_row {
     my ($self, $row) = @_;
     my $fh     = $self->fh;
     my $widths = $self->widths;
     foreach my $col (0..(@$widths-1)) {
         printf $fh "| %-".$widths->[$col]."s ", $row->[$col];
     }
-    print $fh "|\n";
+    say $fh "|";
 }
 
 =head1 NAME
@@ -152,13 +182,13 @@ Text::MarkdownTable - Write Markdown syntax tables from data
 =head1 SYNOPSIS
 
   my $table = Text::MarkdownTable->new;
-  $table->add_row({one=>"my",two=>"table"});
-  $table->add_row({one=>"is",two=>"nice"});
+  $table->add({one=>"a",two=>"table"});
+  $table->add({one=>"is",two=>"nice"});
   $table->done;
 
   | one | two   |
   |-----|-------|
-  | my  | table |
+  | a   | table |
   | is  | nice  |
 
 =head1 DESCRIPTION
@@ -173,6 +203,10 @@ truncated.
 
 =over
 
+=item file
+
+Filename, GLOB, scalar reference or L<IO::Handle> to write to (default STDOUT).
+
 =item fields
 
 Array, hash reference, or comma-separated list of fields/columns.
@@ -184,7 +218,17 @@ Column names. By default field names are used.
 =item widths
 
 Column widths. By default column widths are calculated automatically to the
-width of the widest value. With custom width, large values may be truncated.
+width of the widest value. With given widths, the table is directly be written
+without buffering and large table cell values are truncated.
+
+=item condense
+
+Write table unbuffered in condense format:
+
+  one|two
+  ---|---
+  a|table
+  is|nice
 
 =back
 
@@ -205,9 +249,34 @@ Finish and write the table unless it has already been written.
 
 =head1 SEE ALSO
 
-This module is a fork of L<Catmandu::Exporter::Table>. See
-L<Text::TabularDisplay>, L<Text::SimpleTable>, and L<Text::Table>,
-L<Text::ANSITable>, and L<Text::ASCIITable> for similar modules.
+See L<Catmandu::Exporter::Table> for an application of this module that can be
+used to easily convert data to Markdown tables.
+
+Similar table-generating modules include
+
+=over
+
+=item L<Text::Table::Tiny>
+
+=item L<Text::TabularDisplay>
+
+=item L<Text::SimpleTable>
+
+=item L<Text::Table>
+
+=item L<Text::ANSITable>
+
+=item L<Text::ASCIITable>
+
+=item L<Text::UnicodeBox::Table>
+
+=item L<Table::Simple>
+
+=item L<Text::SimpleTable>
+
+=item L<Text::SimpleTable::AutoWidth>
+
+=back
 
 =cut
 

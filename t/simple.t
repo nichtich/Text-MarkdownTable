@@ -5,23 +5,21 @@ use Test::More;
 BEGIN { use_ok 'Text::MarkdownTable'; }
 require_ok 'Text::MarkdownTable';
 
-my ($got, $expect);
-
 sub table(@) {
-    my (%config) = @_;
-    $got = "";
-    my $data = delete $config{data};
-    my $table = Text::MarkdownTable->new(%config, file => \$got);
-    isa_ok $table, 'Text::MarkdownTable';
+    my ($data, %config) = @_;
+    my $out = "";
+    my $table = Text::MarkdownTable->new(%config, file => \$out);
     $table->add($_) for @$data;
     $table->done;
+    $out;
 }
 
-table data => [{'a' => 'moose', b => '1'}, 
-               {'a' => "p\nony", b => '2'}, 
-               {'a' => 'shr|mp', b => '3'}];
+is table([ ], columns => "foo,bar"), '', "empty table";
 
-$expect = <<TABLE;
+is table( [{'a' => 'moose', b => '1'}, 
+           {'a' => "p\nony", b => '2'}, 
+           {'a' => 'shr|mp', b => '3'}]
+        ), <<TABLE, "MultiMarkdown format ok";
 | a      | b |
 |--------|---|
 | moose  | 1 |
@@ -29,27 +27,45 @@ $expect = <<TABLE;
 | shr mp | 3 |
 TABLE
 
-is $got, $expect, "MultiMarkdown format ok";
- 
-
-table data => [ { a => 'Hello', b => 'World' } ],
-      fields => { a => 'Longname', x => 'X' };
-$expect = <<TABLE;
+is table( [ { a => 'Hello', b => 'World' } ],
+          fields => { a => 'Longname', x => 'X' }
+        ), <<TABLE, "custom column names as HASH";
 | Longname | X |
 |----------|---|
 | Hello    |   |
 TABLE
-is $got, $expect, 'custom column names as HASH';
 
-
-table data => [ { a => 'Hi', b => 'World', c => 'long value' } ],
-      widths => '5,3,6';
-$expect = <<TABLE;
-| a     | b   | c      |
+is table( [ { aa => 'Hi', b => 'World', c => 'long value' } ],
+          widths => '5,3,6'
+        ), <<TABLE, "custom column width / truncation";
+| aa    | b   | c      |
 |-------|-----|--------|
 | Hi    | Wor | lon... |
 TABLE
 
-is $got, $expect, 'custom column width / truncation';
+is table( [ { aa => 'Hi', b => 'World', c => 'long value' } ],
+          widths => '5,3,6', condense => 1
+        ), <<TABLE, "condense with truncation";
+aa|b|c
+--|-|-
+Hi|Wor|lon...
+TABLE
+
+my $out = "";
+my $table = Text::MarkdownTable->new( condense => 1, file => \$out );
+$table->add({ foo => 1, bar => 1024 });
+is $out, <<TABLE, "streaming mode";
+bar|foo
+---|---
+1024|1
+TABLE
+
+$table->add({ doz => 7, bar => 0 });
+is $out, <<TABLE, "streaming mode";
+bar|foo
+---|---
+1024|1
+0|
+TABLE
 
 done_testing;
