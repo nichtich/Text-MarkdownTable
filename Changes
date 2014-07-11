@@ -1,4 +1,6 @@
 {{$NEXT}}
+
+0.2.1  2014-07-11 10:14:33 CEST
     - implemented condense and unbuffered writing 
 
 0.2.0   2014-07-10
