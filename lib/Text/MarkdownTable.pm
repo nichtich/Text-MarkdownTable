@@ -3,42 +3,30 @@ use strict;
 use warnings;
 use 5.010;
 
-our $VERSION = '0.2.1';
+our $VERSION = '0.2.2';
 
 use Moo;
 
-# copied from Catmandu::Exporter
 has file => (
     is      => 'ro',
     lazy    => 1,
     default => sub { \*STDOUT },
 );
- 
+
 use IO::File;
 use IO::Handle::Util ();
-use Scalar::Util ();
 
-# copied from Catmandu::Exporter and Catmandu::Util
 has fh => (
     is      => 'ro',
     lazy    => 1,
     default => sub {
         my $fh = $_[0]->file;
-
-        if (ref $fh and Scalar::Util::reftype($fh) eq 'SCALAR') {
-            $fh = IO::Handle::Util::io_from_scalar_ref($fh);
-        } elsif (Scalar::Util::reftype(\$fh) eq 'GLOB' or
-                (ref $fh and Scalar::Util::reftype($fh) eq 'GLOB')) {
-            $fh = IO::Handle->new_from_fd($fh, "w") // $fh;
-        } elsif (!ref $fh and length $fh > 0) {
-            $fh = IO::File->new($fh, "w");
-        } elsif (!Scalar::Util::blessed($fh) or !$fh->isa('IO::Handle')) {
-            die "invalid value supplied to 'file'";
-        }
-        
+        $fh = ref $fh 
+            ? IO::Handle::Util::io_from_ref($fh) : IO::File->new($fh, "w");
+        die "invalid option file" if !$fh;
         binmode $fh, $_[0]->encoding;
-        return $fh;
-    },
+        $fh;
+    }
 );
 
 has encoding => (

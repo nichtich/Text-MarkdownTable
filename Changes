@@ -1,4 +1,5 @@
 {{$NEXT}}
+    - simplify option 'fh' with IO::Handle::Util
 
 0.2.1  2014-07-11 10:14:33 CEST
     - implemented condense and unbuffered writing 
