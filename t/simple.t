@@ -68,7 +68,7 @@ bar|foo
 1024|1
 TABLE
 
-$table->add({ doz => 7, bar => 0 });
+$table->add({ doz => 7, bar => 0, doz => 'ignored' });
 is $out, <<TABLE, "streaming mode";
 bar|foo
 ---|---

@@ -1,4 +1,6 @@
 {{$NEXT}}
+    - improved performance by using printf
+    - support undefined column names
 
 0.2.2  2014-07-15 15:02:56 CEST
     - simplify option 'fh' with IO::Handle::Util
