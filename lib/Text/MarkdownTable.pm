@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use 5.010;
 
-our $VERSION = '0.2.2';
+our $VERSION = '0.2.3';
 
 use Moo;
 
@@ -72,7 +72,7 @@ sub _trigger_fields {
     my ($self, $fields) = @_;
     $self->{fields} = _coerce_list($fields);
     if (ref $fields and ref $fields eq 'HASH') {
-        $self->{columns} = [ map { $fields->{$_} } @{$self->{fields}} ];
+        $self->{columns} = [ map { $fields->{$_} // $_ } @{$self->{fields}} ];
     }
 }
 
@@ -105,7 +105,7 @@ sub add {
 
         my $w = length $value;
         if ($self->_fixed_width) {
-            if ($w > $width) {
+            if (!$width or $w > $width) {
                 if ($width > 5) {
                     $value = substr($value, 0, $width-3) . '...';
                 } else {
@@ -113,7 +113,7 @@ sub add {
                 }
             }
         } else {
-            $widths->[$col] = $w if $w > $width;
+            $widths->[$col] = $w if !$width or $w > $width;
         }
         push @$row, $value;
     }

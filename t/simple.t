@@ -5,21 +5,21 @@ use Test::More;
 BEGIN { use_ok 'Text::MarkdownTable'; }
 require_ok 'Text::MarkdownTable';
 
-sub table(@) {
-    my ($data, %config) = @_;
+sub is_table(@) {
+    my ($message, $expect,$data) = (pop,pop,shift);
     my $out = "";
-    my $table = Text::MarkdownTable->new(%config, file => \$out);
+    my $table = Text::MarkdownTable->new(@_, file => \$out);
     $table->add($_) for @$data;
     $table->done;
-    $out;
+    is $out, $expect, $message;
 }
 
-is table([ ], columns => "foo,bar"), '', "empty table";
+is_table [ ], columns => "foo,bar", '', "empty table";
 
-is table( [{'a' => 'moose', b => '1'}, 
-           {'a' => "p\nony", b => '2'}, 
-           {'a' => 'shr|mp', b => '3'}]
-        ), <<TABLE, "MultiMarkdown format ok";
+is_table [{'a' => 'moose', b => '1'},
+          {'a' => "p\nony", b => '2'},
+          {'a' => 'shr|mp', b => '3'}],
+<<TABLE, "MultiMarkdown format ok";
 | a      | b |
 |--------|---|
 | moose  | 1 |
@@ -27,25 +27,33 @@ is table( [{'a' => 'moose', b => '1'},
 | shr mp | 3 |
 TABLE
 
-is table( [ { a => 'Hello', b => 'World' } ],
-          fields => { a => 'Longname', x => 'X' }
-        ), <<TABLE, "custom column names as HASH";
-| Longname | X |
-|----------|---|
-| Hello    |   |
+is_table [{ a => 'Hello', b => 'World' }],
+         fields => { a => 'Longname', x => 'X', y => undef }, 
+<<TABLE, "custom column names as HASH";
+| Longname | X | y |
+|----------|---|---|
+| Hello    |   |   |
 TABLE
 
-is table( [ { aa => 'Hi', b => 'World', c => 'long value' } ],
-          widths => '5,3,6'
-        ), <<TABLE, "custom column width / truncation";
+is_table [{ a => 'Hello', b => 'happy', c => 'World', d => '!' }],
+          columns => ['greet',undef,'greet',''],
+<<TABLE, "custom column names as ARRAY";
+| greet |       | greet |   |
+|-------|-------|-------|---|
+| Hello | happy | World | ! |
+TABLE
+
+is_table [{ aa => 'Hi', b => 'World', c => 'long value' }],
+         widths => '5,3,6',
+<<TABLE, "custom column width / truncation";
 | aa    | b   | c      |
 |-------|-----|--------|
 | Hi    | Wor | lon... |
 TABLE
 
-is table( [ { aa => 'Hi', b => 'World', c => 'long value' } ],
-          widths => '5,3,6', condense => 1
-        ), <<TABLE, "condense with truncation";
+is_table [{ aa => 'Hi', b => 'World', c => 'long value' }],
+          widths => '5,3,6', condense => 1,
+<<TABLE, "condense with truncation";
 aa|b|c
 --|-|-
 Hi|Wor|lon...
