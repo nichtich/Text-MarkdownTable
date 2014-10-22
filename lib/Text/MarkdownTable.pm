@@ -51,7 +51,7 @@ has widths => (
     coerce  => \&_coerce_list,
     builder => sub {
         $_[0]->_fixed_width(0);
-        return [map { length $_ } @{$_[0]->columns}]
+        return [map { defined($_) ? length $_ : 0 } @{$_[0]->columns}]
     },
 );
 
