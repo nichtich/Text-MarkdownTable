@@ -90,11 +90,3 @@ Copyright 2014- Jakob Voß
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
-
-# POD ERRORS
-
-Hey! **The above document had some coding errors, which are explained below:**
-
-- Around line 108:
-
-    Non-ASCII character seen before =encoding in 'Voß'. Assuming ISO8859-1
