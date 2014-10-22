@@ -67,7 +67,7 @@ truncated.
 See [Catmandu::Exporter::Table](https://metacpan.org/pod/Catmandu::Exporter::Table) for an application of this module that can be
 used to easily convert data to Markdown tables.
 
-Similar table-generating modules include
+Similar table-generating modules include:
 
 - [Text::Table::Tiny](https://metacpan.org/pod/Text::Table::Tiny)
 - [Text::TabularDisplay](https://metacpan.org/pod/Text::TabularDisplay)
@@ -79,3 +79,22 @@ Similar table-generating modules include
 - [Table::Simple](https://metacpan.org/pod/Table::Simple)
 - [Text::SimpleTable](https://metacpan.org/pod/Text::SimpleTable)
 - [Text::SimpleTable::AutoWidth](https://metacpan.org/pod/Text::SimpleTable::AutoWidth)
+
+# AUTHOR
+
+Jakob Voß <jakob.voss@gbv.de>
+
+# COPYRIGHT AND LICENSE
+
+Copyright 2014- Jakob Voß
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+# POD ERRORS
+
+Hey! **The above document had some coding errors, which are explained below:**
+
+- Around line 108:
+
+    Non-ASCII character seen before =encoding in 'Voß'. Assuming ISO8859-1
