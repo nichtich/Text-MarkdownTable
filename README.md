@@ -51,6 +51,10 @@ truncated.
         a|table
         is|nice
 
+- header
+
+    Include header lines. Enabled by default.
+
 # METHODS
 
 - add
