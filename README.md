@@ -2,6 +2,12 @@
 
 Text::MarkdownTable - Write Markdown syntax tables from data
 
+# STATUS
+
+[![Build Status](https://travis-ci.org/nichtich/Text-MarkdownTable.png)](https://travis-ci.org/nichtich/Text-MarkdownTable)
+[![Coverage Status](https://coveralls.io/repos/nichtich/Text-MarkdownTable/badge.png)](https://coveralls.io/r/nichtich/Text-MarkdownTable)
+[![Kwalitee Score](http://cpants.cpanauthors.org/dist/Text-MarkdownTable.png)](http://cpants.cpanauthors.org/dist/Text-MarkdownTable)
+
 # SYNOPSIS
 
     my $table = Text::MarkdownTable->new;
