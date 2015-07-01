@@ -16,9 +16,9 @@ sub is_table(@) {
 
 is_table [ ], columns => "foo,bar", '', "empty table";
 
-is_table [{'a' => 'moose', b => '1'},
-          {'a' => "p\nony", b => '2'},
-          {'a' => 'shr|mp', b => '3'}],
+is_table [{a => 'moose', b => '1'},
+          {a => "p\nony", b => '2'},
+          {a => 'shr|mp', b => '3'}],
 <<TABLE, "MultiMarkdown format ok";
 | a      | b |
 |--------|---|
@@ -75,5 +75,11 @@ bar|foo
 1024|1
 0|
 TABLE
+
+is_table [{a => 7},{a => 8}], header => 0,
+    "| 7 |\n| 8 |\n", "disable header";
+
+is_table [{a => 7, b=> 1},{a => 8}], header => 0, condense => 1,
+    "7|1\n8|\n", "vbar delimited values";
 
 done_testing;

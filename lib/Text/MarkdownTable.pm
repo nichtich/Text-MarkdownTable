@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use 5.010;
 
-our $VERSION = '0.2.4';
+our $VERSION = '0.3.0';
 
 use Moo;
 
@@ -55,6 +55,8 @@ has widths => (
     },
 );
 
+has header => (is => 'rw', default => sub { 1 });
+
 has condense => (is => 'rw');
 
 has _fixed_width => (is => 'rw', default => sub { 1 });
@@ -89,7 +91,7 @@ sub add {
     if (!$self->_streaming) {
         if ($self->condense or $self->_fixed_width) {
             $self->_streaming(1);
-            $self->_print_header;
+            $self->_print_header if $self->header;
         }
     }
 
@@ -133,7 +135,7 @@ sub done {
     my ($self) = @_;
 
     if ($self->{_rows}) {
-        $self->_print_header;
+        $self->_print_header if $self->header;
         $self->_print_row($_) for @{$self->{_rows}};
     }
 }
@@ -222,6 +224,10 @@ Write table unbuffered in condense format:
   ---|---
   a|table
   is|nice
+
+=item header
+
+Include header lines. Enabled by default.
 
 =back
 
