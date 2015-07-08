@@ -1,5 +1,7 @@
 {{$NEXT}}
     - fix minimal dependency on Moo
+    - additional option 'edges' to disable first and last border
+    - public method 'streaming'
 
 0.3.0  2015-07-01 12:02:42 CEST
     - additional option 'header'

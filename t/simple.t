@@ -59,9 +59,12 @@ aa|b|c
 Hi|Wor|lon...
 TABLE
 
+ok !Text::MarkdownTable->new->streaming, "no streaming by default";
+
 my $out = "";
 my $table = Text::MarkdownTable->new( condense => 1, file => \$out );
 $table->add({ foo => 1, bar => 1024 });
+ok $table->streaming, "streaming mode";
 is $out, <<TABLE, "streaming mode";
 bar|foo
 ---|---
@@ -76,10 +79,24 @@ bar|foo
 0|
 TABLE
 
-is_table [{a => 7},{a => 8}], header => 0,
+is_table [{a => 7},{a => 8}], 
+    header => 0,
     "| 7 |\n| 8 |\n", "disable header";
 
-is_table [{a => 7, b=> 1},{a => 8}], header => 0, condense => 1,
+is_table [{a => 7, b=> 1},{a => 8}], 
+    header => 0, condense => 1,
     "7|1\n8|\n", "vbar delimited values";
+
+is_table([{foo => 1, bar => 2}], edges => 0, <<TABLE, "edges disabled");
+bar | foo
+----|----
+2   | 1  
+TABLE
+
+is_table([{a => 1, b => 2, c => 3}], edges => 0, <<TABLE, "edges disabled");
+a | b | c
+--|---|--
+1 | 2 | 3
+TABLE
 
 done_testing;

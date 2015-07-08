@@ -3,9 +3,11 @@ use strict;
 use warnings;
 use 5.010;
 
-our $VERSION = '0.3.0';
+our $VERSION = '0.3.1';
 
 use Moo;
+use IO::File;
+use IO::Handle::Util ();
 
 has file => (
     is      => 'ro',
@@ -13,16 +15,13 @@ has file => (
     default => sub { \*STDOUT },
 );
 
-use IO::File;
-use IO::Handle::Util ();
-
 has fh => (
     is      => 'ro',
     lazy    => 1,
     default => sub {
         my $fh = $_[0]->file;
         $fh = ref $fh 
-            ? IO::Handle::Util::io_from_ref($fh) : IO::File->new($fh, "w");
+            ? IO::Handle::Util::io_from_ref($fh) : IO::File->new($fh,"w");
         die "invalid option file" if !$fh;
         binmode $fh, $_[0]->encoding;
         $fh;
@@ -55,12 +54,23 @@ has widths => (
     },
 );
 
-has header => (is => 'rw', default => sub { 1 });
+has header => (
+    is => 'rw', 
+    default => sub { 1 }
+);
 
-has condense => (is => 'rw');
+has edges => (
+    is => 'rw',
+    default => sub { 1 },
+);
+
+has condense => (
+    is => 'rw',
+);
+
+has streaming => (is => 'rwp');
 
 has _fixed_width => (is => 'rw', default => sub { 1 });
-has _streaming => (is => 'rw');
 
 # TODO: duplicated in Catmandu::Exporter::CSV fields-coerce
 sub _coerce_list {
@@ -88,11 +98,9 @@ sub add {
     my $widths = $self->widths; # may set 
     my $row = [ ];
 
-    if (!$self->_streaming) {
-        if ($self->condense or $self->_fixed_width) {
-            $self->_streaming(1);
-            $self->_print_header if $self->header;
-        }
+    if (!$self->streaming and ($self->condense or $self->_fixed_width)) {
+        $self->_set_streaming(1);
+        $self->_print_header if $self->header;
     }
 
     foreach my $col (0..(@$fields-1)) {
@@ -124,7 +132,7 @@ sub add {
 sub _add_row {
     my ($self, $row) = @_;
 
-    if ($self->_streaming) {
+    if ($self->streaming) {
         $self->_print_row($row);
     } else {
         push @{$self->{_rows}}, $row;
@@ -147,18 +155,25 @@ sub _print_header {
     $self->_print_row($self->columns);
     if ($self->condense) {
         $self->_print_row([ map { '-' x length $_ } @{$self->columns} ]);
-    } else {
+    } elsif ($self->edges) {
         print $fh '|'.('-' x ($_+2)) for @{$self->widths};
         print $fh "|\n";
+    } else {
+        print $fh substr(join('|',map { '-' x ($_+2) } @{$self->widths}),1,-1);
+        print $fh "\n";
     }
 }
 
 has _row_format => (
     is      => 'lazy',
-    builder => sub { 
-        $_[0]->condense
-            ? join("|",map {"%s"} @{$_[0]->fields})."\n"
-            : join("",map {"| %-".$_."s "} @{$_[0]->widths})."|\n";
+    builder => sub {
+        if ( $_[0]->condense ) {
+            join("|",map {"%s"} @{$_[0]->fields})."\n"
+        } elsif ( $_[0]->edges ) {
+            join("",map {"| %-".$_."s "} @{$_[0]->widths})."|\n";
+        } else {
+            join(" | ",map {"%-".$_."s"} @{$_[0]->widths})."\n";
+        }
     }
 );
 
@@ -196,6 +211,13 @@ Text::MarkdownTable - Write Markdown syntax tables from data
   | a   | table |
   | is  | nice  |
 
+  Text::MarkdownTable->new( columns => ['X','Y','Z'], edges => 0 )
+    ->add({a=>1,b=>2,c=>3})->done;
+
+  X | Y | Z
+  --|---|--
+  1 | 2 | 3
+  
 =head1 DESCRIPTION
 
 This module can be used to write data in tabular form, formatted in
@@ -226,6 +248,16 @@ Column widths. By default column widths are calculated automatically to the
 width of the widest value. With given widths, the table is directly be written
 without buffering and large table cell values are truncated.
 
+=item header
+
+Include header lines. Enabled by default.
+
+=item edges
+
+Include border before first column and after last column. Enabled by default.
+Note that single-column tables don't not look like tables if edges are
+disabled.
+
 =item condense
 
 Write table unbuffered in condense format:
@@ -235,9 +267,7 @@ Write table unbuffered in condense format:
   a|table
   is|nice
 
-=item header
-
-Include header lines. Enabled by default.
+Note that single-column tables are don't look like tables on condense format.
 
 =back
 
@@ -245,14 +275,18 @@ Include header lines. Enabled by default.
 
 =over
 
-=item add
+=item add( $row )
 
-Add a row as hash reference. Depending on the configuration rows are directly
-written or buffered.
+Add a row as hash reference. Returns the table instance.
+
+=item streaming
+
+Returns whether rows are directly written or buffered until C<done> is called.
 
 =item done
 
-Finish and write the table unless it has already been written.
+Finish and write the table unless it has already been written in C<streaming>
+mode.
 
 =back
 
