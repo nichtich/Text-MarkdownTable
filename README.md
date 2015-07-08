@@ -20,6 +20,14 @@ Text::MarkdownTable - Write Markdown syntax tables from data
     | a   | table |
     | is  | nice  |
 
+    Text::MarkdownTable->new( columns => ['X','Y','Z'], edges => 0 )
+      ->add({a=>1,b=>2,c=>3})->done;
+
+    X | Y | Z
+    --|---|--
+    1 | 2 | 3
+    
+
 # DESCRIPTION
 
 This module can be used to write data in tabular form, formatted in
@@ -48,6 +56,16 @@ truncated.
     width of the widest value. With given widths, the table is directly be written
     without buffering and large table cell values are truncated.
 
+- header
+
+    Include header lines. Enabled by default.
+
+- edges
+
+    Include border before first column and after last column. Enabled by default.
+    Note that single-column tables don't not look like tables if edges are
+    disabled.
+
 - condense
 
     Write table unbuffered in condense format:
@@ -57,20 +75,22 @@ truncated.
         a|table
         is|nice
 
-- header
-
-    Include header lines. Enabled by default.
+    Note that single-column tables are don't look like tables on condense format.
 
 # METHODS
 
-- add
+- add( $row )
 
-    Add a row as hash reference. Depending on the configuration rows are directly
-    written or buffered.
+    Add a row as hash reference. Returns the table instance.
+
+- streaming
+
+    Returns whether rows are directly written or buffered until `done` is called.
 
 - done
 
-    Finish and write the table unless it has already been written.
+    Finish and write the table unless it has already been written in `streaming`
+    mode.
 
 # SEE ALSO
 
