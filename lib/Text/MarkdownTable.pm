@@ -212,7 +212,7 @@ Text::MarkdownTable - Write Markdown syntax tables from data
   | is  | nice  |
 
   Text::MarkdownTable->new( columns => ['X','Y','Z'], edges => 0 )
-    ->add({a=>1,b=>2,c=>3})->done;
+  ->add({a=>1,b=>2,c=>3})->done;
 
   X | Y | Z
   --|---|--
@@ -292,8 +292,13 @@ mode.
 
 =head1 SEE ALSO
 
-See L<Catmandu::Exporter::Table> for an application of this module that can be
-used to easily convert data to Markdown tables.
+Mardown tables as implemented in this module are also known as "pipe tables".
+See L<GitHub|https://help.github.com/articles/github-flavored-markdown/#tables>
+and L<Pandoc|http://pandoc.org/README.html#extension-pipe_tables> documentation
+of pipe tables for (informal) specifications.
+
+See L<Catmandu::Exporter::Table> for an application of this module to to easily
+convert data in many formats to Markdown tables.
 
 Similar table-generating modules include:
 
