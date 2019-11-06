@@ -20,8 +20,10 @@ has fh => (
     lazy    => 1,
     default => sub {
         my $fh = $_[0]->file;
-        $fh = ref $fh 
-            ? IO::Handle::Util::io_from_ref($fh) : IO::File->new($fh,"w");
+        $fh =
+          ref $fh
+          ? IO::Handle::Util::io_from_ref($fh)
+          : IO::File->new( $fh, "w" );
         die "invalid option file" if !$fh;
         binmode $fh, $_[0]->encoding;
         $fh;
@@ -34,7 +36,7 @@ has encoding => (
 );
 
 has fields => (
-    is     => 'rw',
+    is      => 'rw',
     trigger => 1,
 );
 
@@ -50,60 +52,58 @@ has widths => (
     coerce  => \&_coerce_list,
     builder => sub {
         $_[0]->_fixed_width(0);
-        return [map { defined($_) ? length $_ : 0 } @{$_[0]->columns}]
+        return [ map { defined($_) ? length $_ : 0 } @{ $_[0]->columns } ];
     },
 );
 
 has header => (
-    is => 'rw', 
+    is      => 'rw',
     default => sub { 1 }
 );
 
 has edges => (
-    is => 'rw',
+    is      => 'rw',
     default => sub { 1 },
 );
 
-has condense => (
-    is => 'rw',
-);
+has condense => ( is => 'rw', );
 
-has streaming => (is => 'rwp');
+has streaming => ( is => 'rwp' );
 
-has _fixed_width => (is => 'rw', default => sub { 1 });
+has _fixed_width => ( is => 'rw', default => sub { 1 } );
 
 # TODO: duplicated in Catmandu::Exporter::CSV fields-coerce
 sub _coerce_list {
-    if (ref $_[0]) {
+    if ( ref $_[0] ) {
         return $_[0] if ref $_[0] eq 'ARRAY';
-        return [sort keys %{$_[0]}] if ref $_[0] eq 'HASH';
-    }    
-    return [split ',', $_[0]];
+        return [ sort keys %{ $_[0] } ] if ref $_[0] eq 'HASH';
+    }
+    return [ split ',', $_[0] ];
 }
 
 sub _trigger_fields {
-    my ($self, $fields) = @_;
+    my ( $self, $fields ) = @_;
     $self->{fields} = _coerce_list($fields);
-    if (ref $fields and ref $fields eq 'HASH') {
-        $self->{columns} = [ map { $fields->{$_} // $_ } @{$self->{fields}} ];
+    if ( ref $fields and ref $fields eq 'HASH' ) {
+        $self->{columns} = [ map { $fields->{$_} // $_ } @{ $self->{fields} } ];
     }
 }
 
 sub add {
-    my ($self, $data) = @_;
-    unless ($self->fields) {
-        $self->{fields} = [ sort keys %$data ]
+    my ( $self, $data ) = @_;
+    unless ( $self->fields ) {
+        $self->{fields} = [ sort keys %$data ];
     }
     my $fields = $self->fields;
-    my $widths = $self->widths; # may set 
-    my $row = [ ];
+    my $widths = $self->widths;    # may set
+    my $row    = [];
 
-    if (!$self->streaming and ($self->condense or $self->_fixed_width)) {
+    if ( !$self->streaming and ( $self->condense or $self->_fixed_width ) ) {
         $self->_set_streaming(1);
         $self->_print_header if $self->header;
     }
 
-    foreach my $col (0..(@$fields-1)) {
+    foreach my $col ( 0 .. ( @$fields - 1 ) ) {
         my $field = $fields->[$col];
         my $width = $widths->[$col];
 
@@ -111,15 +111,17 @@ sub add {
         $value =~ s/[\n|]/ /g;
 
         my $w = length $value;
-        if ($self->_fixed_width) {
-            if (!$width or $w > $width) {
-                if ($width > 5) {
-                    $value = substr($value, 0, $width-3) . '...';
-                } else {
-                    $value = substr($value, 0, $width);
+        if ( $self->_fixed_width ) {
+            if ( !$width or $w > $width ) {
+                if ( $width > 5 ) {
+                    $value = substr( $value, 0, $width - 3 ) . '...';
+                }
+                else {
+                    $value = substr( $value, 0, $width );
                 }
             }
-        } else {
+        }
+        else {
             $widths->[$col] = $w if !$width or $w > $width;
         }
         push @$row, $value;
@@ -130,36 +132,41 @@ sub add {
 }
 
 sub _add_row {
-    my ($self, $row) = @_;
+    my ( $self, $row ) = @_;
 
-    if ($self->streaming) {
+    if ( $self->streaming ) {
         $self->_print_row($row);
-    } else {
-        push @{$self->{_rows}}, $row;
+    }
+    else {
+        push @{ $self->{_rows} }, $row;
     }
 }
 
 sub done {
     my ($self) = @_;
 
-    if ($self->{_rows}) {
+    if ( $self->{_rows} ) {
         $self->_print_header if $self->header;
-        $self->_print_row($_) for @{$self->{_rows}};
+        $self->_print_row($_) for @{ $self->{_rows} };
     }
 }
 
 sub _print_header {
     my ($self) = @_;
-    my $fh     = $self->fh;
+    my $fh = $self->fh;
 
-    $self->_print_row($self->columns);
-    if ($self->condense) {
-        $self->_print_row([ map { '-' x length $_ } @{$self->columns} ]);
-    } elsif ($self->edges) {
-        print $fh '|'.('-' x ($_+2)) for @{$self->widths};
+    $self->_print_row( $self->columns );
+    if ( $self->condense ) {
+        $self->_print_row( [ map { '-' x length $_ } @{ $self->columns } ] );
+    }
+    elsif ( $self->edges ) {
+        print $fh '|' . ( '-' x ( $_ + 2 ) ) for @{ $self->widths };
         print $fh "|\n";
-    } else {
-        print $fh substr(join('|',map { '-' x ($_+2) } @{$self->widths}),1,-1);
+    }
+    else {
+        print $fh
+          substr( join( '|', map { '-' x ( $_ + 2 ) } @{ $self->widths } ),
+            1, -1 );
         print $fh "\n";
     }
 }
@@ -168,18 +175,20 @@ has _row_format => (
     is      => 'lazy',
     builder => sub {
         if ( $_[0]->condense ) {
-            join("|",map {"%s"} @{$_[0]->fields})."\n"
-        } elsif ( $_[0]->edges ) {
-            join("",map {"| %-".$_."s "} @{$_[0]->widths})."|\n";
-        } else {
-            join(" | ",map {"%-".$_."s"} @{$_[0]->widths})."\n";
+            join( "|", map { "%s" } @{ $_[0]->fields } ) . "\n";
+        }
+        elsif ( $_[0]->edges ) {
+            join( "", map { "| %-" . $_ . "s " } @{ $_[0]->widths } ) . "|\n";
+        }
+        else {
+            join( " | ", map { "%-" . $_ . "s" } @{ $_[0]->widths } ) . "\n";
         }
     }
 );
 
 sub _print_row {
-    my ($self, $row) = @_;
-    printf {$self->fh} $self->_row_format, @{$row};
+    my ( $self, $row ) = @_;
+    printf { $self->fh } $self->_row_format, @{$row};
 }
 
 1;
@@ -201,7 +210,7 @@ Text::MarkdownTable - Write Markdown syntax tables from data
 
 =head1 SYNOPSIS
 
-  my $table = Text::MarkdownTable->new;
+  my $table = Text::MarkdownTable->new( fields => ['a', 'b'] );
   $table->add({one=>"a",two=>"table"});
   $table->add({one=>"is",two=>"nice"});
   $table->done;
@@ -211,8 +220,9 @@ Text::MarkdownTable - Write Markdown syntax tables from data
   | a   | table |
   | is  | nice  |
 
-  Text::MarkdownTable->new( columns => ['X','Y','Z'], edges => 0 )
-  ->add({a=>1,b=>2,c=>3})->done;
+  Text::MarkdownTable->new(
+    fields => [qw(a b c)], columns => [qw(X Y Z)], edges => 0
+  )->add({a=>1,b=>2,c=>3})->done;
 
   X | Y | Z
   --|---|--
@@ -236,11 +246,12 @@ Filename, GLOB, scalar reference or L<IO::Handle> to write to (default STDOUT).
 
 =item fields
 
-Array, hash reference, or comma-separated list of fields/columns.
+Array, hash reference, or comma-separated list of fields/columns. Use to
+specify order of columns.
 
 =item columns
 
-Column names. By default field names are used.
+Column names. By default field names are used. Use to specify names of columns.
 
 =item widths
 
